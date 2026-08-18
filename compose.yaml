@@ -1,0 +1,19 @@
+name: scheme-swl-docker
+
+services:
+  scheme:
+    image: scheme-swl-docker:latest
+    build:
+      context: .
+    platform: linux/386
+    init: true
+    ports:
+      - "127.0.0.1:6000:6000"
+    volumes:
+      - .:/workspace
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "--show-error", "http://127.0.0.1:6000/"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s

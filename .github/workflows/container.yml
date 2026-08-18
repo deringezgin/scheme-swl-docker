@@ -1,0 +1,70 @@
+name: Container CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v6
+
+      - name: Build the container
+        run: docker build --platform linux/386 --tag scheme-swl-docker:ci .
+
+      - name: Run the non-GUI example
+        run: |
+          output="$(docker run --rm --platform linux/386 \
+            --entrypoint petite scheme-swl-docker:ci \
+            --script /opt/scheme-swl/examples/hello.ss)"
+          printf '%s\n' "$output"
+          grep -Fx 'Petite Chez Scheme Version 8.4' <<< "$output"
+          grep -Fx 'factorial(6) = 720' <<< "$output"
+
+      - name: Run the GUI example
+        run: |
+          docker run --rm --platform linux/386 \
+            --entrypoint bash scheme-swl-docker:ci -lc '
+              set -euo pipefail
+
+              Xvfb :99 -screen 0 1280x800x24 -ac -nolisten tcp \
+                > /tmp/xvfb.log 2>&1 &
+              xvfb_pid=$!
+
+              for _ in {1..100}; do
+                [[ -S /tmp/.X11-unix/X99 ]] && break
+                sleep 0.05
+              done
+              test -S /tmp/.X11-unix/X99
+
+              SWL_CI_SENTINEL=/tmp/gui.ok \
+                swl /opt/scheme-swl/examples/gui-demo.ss > /tmp/gui.log 2>&1 &
+              swl_pid=$!
+
+              for _ in {1..200}; do
+                if [[ -f /tmp/gui.ok ]]; then
+                  grep -Fx SWL_1_3_GUI_OK /tmp/gui.ok
+                  set +e
+                  kill "$swl_pid" "$xvfb_pid" 2>/dev/null
+                  wait "$swl_pid" 2>/dev/null
+                  wait "$xvfb_pid" 2>/dev/null
+                  exit 0
+                fi
+                if ! kill -0 "$swl_pid" 2>/dev/null; then
+                  cat /tmp/gui.log >&2
+                  exit 1
+                fi
+                sleep 0.1
+              done
+
+              cat /tmp/gui.log >&2
+              echo "GUI example timed out" >&2
+              exit 1
+            '
