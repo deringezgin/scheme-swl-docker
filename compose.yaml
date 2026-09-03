@@ -8,7 +8,7 @@ services:
     platform: linux/386
     init: true
     ports:
-      - "127.0.0.1:6000:6000"
+      - "127.0.0.1:6080:6000"
     volumes:
       - .:/workspace
     healthcheck:
