@@ -1,0 +1,41 @@
+(import swl:module-setup)
+(import swl:oop)
+(import swl:macros)
+(import swl:generics)
+(import swl:option)
+(import swl:foreign)
+(import swl:threads)
+
+(unless (and (eq? (machine-type) 'arm64osx) (not (threaded?)))
+  (error 'verify "expected nonthreaded ARM64 Chez"))
+(unless (string=? (swl:raw-tcl-eval "tk windowingsystem") "aqua")
+  (error 'verify "Tk is not using the native Aqua window system"))
+
+;; Exercise the Tcl_Channel pointer across the Scheme/C boundary. This would
+;; truncate addresses with the original integer-32 foreign declarations.
+(define test-file (string-append (getenv "SWL_VERIFY_DIR") "/channel.txt"))
+(define channel-name (swl:raw-tcl-eval (format "open {~a} w+" test-file)))
+(define channel (swl:get-channel channel-name))
+(unless (= (swl:os-c-write-n channel "arm64-channel-ok" 0 16) 16)
+  (error 'verify "channel write failed"))
+(unless (= (swl:os-flush channel) 0) (error 'verify "channel flush failed"))
+(swl:raw-tcl-eval (format "seek ~a 0" channel-name))
+(define readback (make-string 16))
+(unless (and (= (swl:os-c-read-n channel readback 0 16) 16)
+             (string=? readback "arm64-channel-ok"))
+  (error 'verify "channel read failed"))
+(swl:raw-tcl-eval (format "close ~a" channel-name))
+
+(define top (create <toplevel> with (title: "Native SWL verification")))
+(define canvas (create <canvas> top with
+  (width: 400) (height: 260) (background-color: 'white)))
+(define circle (create <oval> canvas 110 40 290 220))
+(set-fill-color! circle (make <rgb> 40 100 200))
+(show canvas)
+(thread-fork
+  (lambda ()
+    (thread-sleep 500)
+    (with-output-to-file (string-append (getenv "SWL_VERIFY_DIR") "/success.txt")
+      (lambda () (display "ARM64_SWL_AQUA_GUI_AND_CHANNEL_OK\n"))
+      'replace)
+    ((foreign-procedure "_exit" (int) void) 0)))

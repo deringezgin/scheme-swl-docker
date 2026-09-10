@@ -1,0 +1,218 @@
+--- a/configure.ss
++++ b/configure.ss
+@@ -192,6 +192,30 @@
+                 (with-path load-shared-object ,foreign-obj)
+                 (load-shared-object ,libtcl)
+                 (load-shared-object ,libtk)))))))
++    ((arm64osx) ; Apple Silicon, native Aqua Tk
++     (let* ([root (or (getenv "SWL_NATIVE_PREFIX")
++                      (error 'configure "SWL_NATIVE_PREFIX must be set"))]
++            [libtcl (string-append root "/lib/libtcl8.6.dylib")]
++            [libtk (string-append root "/lib/libtk8.6.dylib")])
++       (set! TCL_LIBRARY (string-append root "/lib/tcl8.6"))
++       (set! TK_LIBRARY (string-append root "/lib/tk8.6"))
++       (write-configuration
++         `((NOHEAP 1)
++           (CC clang)
++           (CFLAGS ,(format "-O2 -arch arm64 -mmacosx-version-min=11.0 -DMAC_OSX_TK -I~a/include" root))
++           (LD clang)
++           (LDFLAGS "-arch arm64 -dynamiclib -mmacosx-version-min=11.0")
++           (SHLIBS ,(string-append libtk " " libtcl))
++           (FOREIGN_OBJ "swl.so")))
++       (write-build-script 'oop (oop-build))
++       (write-build-script 'swl
++         (swl-build
++           (lambda ()
++             `(begin
++                (let ([runtime (or (getenv "SWL_RUNTIME_ROOT") ,root)])
++                  (load-shared-object (string-append runtime "/lib/libtcl8.6.dylib"))
++                  (load-shared-object (string-append runtime "/lib/libtk8.6.dylib")))
++                (with-path load-shared-object "swl.so")))))))
+     ((a6osx) ; native Aqua
+      (set! TCL_LIBRARY (format "/Library/Frameworks/Tcl.framework/Resources/Scripts/"))
+      (set! TK_LIBRARY (format "/Library/Frameworks/Tk.framework/Resources/Scripts/"))
+--- a/src/swl/foreign.ss
++++ b/src/swl/foreign.ss
+@@ -219,7 +219,7 @@
+           )))
+ 
+     (set! swl:get-channel
+-      (let ((getit (foreign-procedure "SWL_GetChannel" (string) integer-32)))
++      (let ((getit (foreign-procedure "SWL_GetChannel" (string) void*)))
+         (lambda (name)
+           (getit
+             (if (string? name)
+@@ -229,16 +229,16 @@
+     (set! swl:os-get-error (foreign-procedure "SWL_GetError" () string))
+ 
+     (set! swl:os-bytes-ready
+-      (foreign-procedure "Tcl_InputBuffered" (integer-32) integer-32))
++      (foreign-procedure "Tcl_InputBuffered" (void*) integer-32))
+     
+     (set! swl:os-eof
+-      (foreign-procedure "Tcl_Eof" (integer-32) boolean))
++      (foreign-procedure "Tcl_Eof" (void*) boolean))
+     
+     (set! swl:os-flush
+-      (foreign-procedure "Tcl_Flush" (integer-32) integer-32))
++      (foreign-procedure "Tcl_Flush" (void*) integer-32))
+     
+     (set! swl:os-c-read-n
+-      (let ([fp (foreign-procedure "SWL_channel_read" (int u8* int int) int)])
++      (let ([fp (foreign-procedure "SWL_channel_read" (void* u8* int int) int)])
+         (lambda (channel str index count)
+           (let ([bv (make-bytevector count)])
+             (let ([n (fp channel bv 0 count)])
+@@ -251,7 +251,7 @@
+               n)))))
+     
+     (set! swl:os-c-write-n
+-      (let ([fp (foreign-procedure "SWL_channel_write" (int u8* int int) int)])
++      (let ([fp (foreign-procedure "SWL_channel_write" (void* u8* int int) int)])
+         (lambda (channel str index count)
+           (let ([bv (make-bytevector count)])
+             (when (fx> count 0)
+@@ -264,19 +264,19 @@
+     (set! swl:name-to-window
+       (foreign-procedure "SWL_name_to_window"
+                          (string)
+-                         integer-32))
+-
+-    (set! swl:map-window (foreign-procedure "Tk_MapWindow" (integer-32) void))
+-    (set! swl:unmap-window (foreign-procedure "Tk_UnmapWindow" (integer-32) void))
++                         void*))
++
++    (set! swl:map-window (foreign-procedure "Tk_MapWindow" (void*) void))
++    (set! swl:unmap-window (foreign-procedure "Tk_UnmapWindow" (void*) void))
+ 
+     (set! swl:move-window
+       (foreign-procedure "Tk_MoveWindow"
+-                         (integer-32 integer-32 integer-32)
++                         (void* integer-32 integer-32)
+                          void))
+ 
+     (set! swl:resize-window
+       (foreign-procedure "Tk_ResizeWindow"
+-                         (integer-32 integer-32 integer-32)
++                         (void* integer-32 integer-32)
+                          void))
+ 
+     (set! swl:debug-mem (foreign-procedure "SWL_mem_dbg" () void))
+--- a/src/swl/foreign.c
++++ b/src/swl/foreign.c
+@@ -47,7 +47,7 @@
+ #endif /* DEBUG */
+ 
+ Export int SWL_TclInit(int qsize, int bufsize);
+-Export char *SWL_TclEval(char *str, char *flags);
++Export const char *SWL_TclEval(char *str, char *flags);
+ Export int SWL_DoOneEvent(int block, char *buf, int size);
+ Export int SWL_PeekEvent(void);
+ Export Tcl_Channel SWL_GetChannel(char* channame);
+@@ -150,7 +150,7 @@
+ }
+ 
+ 
+-char *SWL_TclEval(char *str, char *success) {
++const char *SWL_TclEval(char *str, char *success) {
+   int result;
+   char *s;
+ 
+--- a/src/swl/init.ss
++++ b/src/swl/init.ss
+@@ -45,7 +45,7 @@
+       [(i3nt ti3nt ppcnt)
+        (when (<= (swl:open-dde-file url "" "") 32)
+          (assertion-violationf #f "unable to start web browser"))]
+-      [(ppcosx tppcosx i3osx ti3osx) (system (format "/usr/bin/open ~a" url))]
++      [(ppcosx tppcosx i3osx ti3osx a6osx ta6osx arm64osx tarm64osx) (system (format "/usr/bin/open ~a" url))]
+       [else
+        (let ([als (swl:load-preferences 'external-applications)])
+          (define with-preference
+@@ -503,7 +503,7 @@
+           (initialize-graphics-lib)
+ 
+         ; must come before first peek-event or event-dispatch
+-          (when (memq (machine-type) '(ppcosx i3osx tppcosx ti3osx))
++          (when (memq (machine-type) '(ppcosx i3osx tppcosx ti3osx a6osx ta6osx arm64osx tarm64osx))
+             (let ([op (open-output-string)])
+               (display "set files_to_edit \"\"\n" op)
+               (display "set generate_newedit_event 0\n" op)
+@@ -920,7 +920,7 @@
+              (let ()
+                (include "../swl/server.ss")
+ 
+-               (start-swl-server args))
++               (unless (getenv "SWL_NO_SERVER") (start-swl-server args)))
+   
+              (let ([gprefs (swl:load-preferences 'swl-global)])
+   
+--- a/src/swl/event.ss
++++ b/src/swl/event.ss
+@@ -110,7 +110,7 @@
+     (when widget (send widget mouse-motion x y state))))
+ 
+ (define swl:parse-filenames
+-  (when (memq (machine-type) '(i3osx ppcosx ti3osx tppcosx))
++  (when (memq (machine-type) '(i3osx arm64osx ppcosx ti3osx tppcosx))
+     (lambda (s)
+       (let ([n (string-length s)])
+         (define (sx i ls) (cons (list->string (reverse ls)) (s0 i)))
+@@ -145,7 +145,7 @@
+         (s0 0)))))
+ 
+ (define new-edit-cbproc
+-  (when (memq (machine-type) '(i3osx ppcosx ti3osx tppcosx))
++  (when (memq (machine-type) '(i3osx arm64osx ppcosx ti3osx tppcosx))
+    ; hack to start up edit windows on MacOS X, using the files_to_edit
+    ; tcl variable set by aqua.tcl's ::tk::mac::OpenDocument whenever
+    ; file is double-clicked or dragged onto swl icon
+@@ -1065,7 +1065,7 @@
+            [double         #x800]
+            [triple        #x1000]
+            [else #f]))]
+-      [(i3osx ppcosx)
++      [(i3osx arm64osx ppcosx)
+        (lambda (m)
+          (syntax-case m (shift caps_lock control alt num_lock left-button
+                           middle-button right-button double triple
+--- a/src/swl/menu.ss
++++ b/src/swl/menu.ss
+@@ -460,7 +460,7 @@
+         (drop-image)
+         (let ([val
+                (case (machine-type)
+-                 [(ppcosx i3osx)
++                 [(ppcosx i3osx arm64osx)
+                   ;; apparently Mac OS X won't let us have
+                   ;; menu titles containing an ellipsis.
+                   ;; For example, the "Go to line..." menu
+--- a/src/swl/console.ss
++++ b/src/swl/console.ss
+@@ -366,13 +366,13 @@
+                                              (selected: #t)
+                                              (prefs-key:
+                                                (case (machine-type)
+-                                                 [(i3nt ti3nt i3osx ppcosx) 'wrap-text]
++                                                 [(i3nt ti3nt i3osx arm64osx ppcosx) 'wrap-text]
+                                                  [else #f]))
+                                              (enabled:
+                                               ; force word-wrap 'char for X11-based Tcl/Tk to avoid
+                                               ; bugs w/ overly long lines blowing internal Xlib limits
+                                                (case (machine-type)
+-                                                 [(i3nt ti3nt i3osx ppcosx) #t]
++                                                 [(i3nt ti3nt i3osx arm64osx ppcosx) #t]
+                                                  [else #f]))
+                                              (action:
+                                                (lambda (item)
+--- a/apps/htmlview/htmlview.ss
++++ b/apps/htmlview/htmlview.ss
+@@ -333,7 +333,7 @@
+       [(name)
+        ; use default web browser on Mac OS X
+        (case (machine-type)
+-         [(ppcosx i3osx) (system (format "/usr/bin/open ~a" name))]
++         [(ppcosx i3osx arm64osx) (system (format "/usr/bin/open ~a" name))]
+          [else
+           (swl:begin-application
+             (lambda (token)

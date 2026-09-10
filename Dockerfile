@@ -65,6 +65,8 @@ RUN test -f /usr/share/novnc/vnc_auto.html \
 
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/scheme-swl-entrypoint
 COPY examples /opt/scheme-swl/examples
+COPY browser-fit.js /usr/share/novnc/include/browser-fit.js
+RUN sed -i '/<\/body>/i\    <script src="include/browser-fit.js"></script>' /usr/share/novnc/vnc_auto.html
 
 ENV DISPLAY=:99 \
     HOME=/home/student

@@ -1,5 +1,12 @@
 # scheme-swl-docker
 
+For local Apple Silicon windows without Docker, see the
+[native macOS setup](native-macos/README.md).
+
+For student computers, use the [standalone installer](dist/Install-SWL.command)
+and [student setup instructions](native-macos/STUDENT-SETUP.md). The installer
+builds Scheme and a self-contained SWL.app on Apple Silicon Macs.
+
 ## 1. Install Docker
 
 Install and start [Docker Desktop](https://www.docker.com/products/docker-desktop/).
