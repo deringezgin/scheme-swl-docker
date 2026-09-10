@@ -1,87 +1,56 @@
-# scheme-swl-docker
+# Scheme and SWL
 
-For local Apple Silicon windows without Docker, see the
-[native macOS setup](native-macos/README.md).
+Install Scheme and SWL as a native app on an **Apple Silicon Mac** (M-series).
+You need an internet connection. No existing Scheme installation, Homebrew,
+Docker, or Python is required.
 
-For student computers, use the [standalone installer](dist/Install-SWL.command)
-and [student setup instructions](native-macos/STUDENT-SETUP.md). The installer
-builds Scheme and a self-contained SWL.app on Apple Silicon Macs.
+## Install SWL.app
 
-## 1. Install Docker
+1. Download [Install-SWL.command](https://github.com/deringezgin/scheme-swl-docker/raw/refs/heads/main/dist/Install-SWL.command)
+   into your **Downloads** folder.
+2. Open **Terminal** and run:
 
-Install and start [Docker Desktop](https://www.docker.com/products/docker-desktop/).
+   ```sh
+   bash "$HOME/Downloads/Install-SWL.command"
+   ```
 
-## 2. Build and start the container
+3. If Apple's developer-tools dialog appears, click **Install** and finish that
+   installation. Leave Terminal open; SWL setup continues automatically.
+4. Wait for **Installed:** in Terminal. The first build takes several minutes.
 
-Open a terminal in this project directory (the folder containing
-`compose.yaml`) and run:
+The installer builds Scheme and SWL and installs the self-contained app at
+`~/Applications/SWL.app`. You can delete the installer afterward.
+
+## Open SWL
+
+Double-click **SWL.app** in your home folder's **Applications** folder, or run:
 
 ```sh
-docker compose up --build -d
+open "$HOME/Applications/SWL.app"
 ```
 
-The first build may take several minutes. The `-d` option keeps the container
-running in the background.
+You only need to run the installer once. Open the app directly for later sessions.
 
-After the image has been built, start the container again with:
+## Load an assignment
 
-```sh
-docker compose up -d
-```
-
-## 3. Open Scheme
-
-Visit <http://127.0.0.1:6080/> in a web browser. The SWL desktop will load in
-the browser.
-
-Example programs are available in the SWL editor at:
-
-- `/workspace/examples/hello.ss`
-- `/workspace/examples/gui-demo.ss`
-
-## 4. Run a sample program
-
-Click after the `>` prompt in the Scheme window, type this command, and press
-Enter:
+Keep the assignment's helper files together. In the SWL REPL, set the working
+directory and load the main file:
 
 ```scheme
-(load "/workspace/examples/hello.ss")
+(current-directory "/Users/your-name/Downloads/ai_01_bfs_dfs")
+(load "grid-main.ss")
 ```
 
-The output should include `factorial(6) = 720`.
+Replace the folder and filename with those for your assignment.
 
-To run the GUI example, enter:
+## Other setup options
 
-```scheme
-(load "/workspace/examples/gui-demo.ss")
-```
-
-A window titled `Scheme/SWL GUI Demo` should appear.
-
-## 5. View running containers
-
-From the project directory, run:
-
-```sh
-docker compose ps
-```
-
-The status should say `Up` and `healthy`.
-
-To view every running Docker container, run `docker ps`.
-
-## 6. Stop the container
-
-Stop it while keeping the container available for later:
-
-```sh
-docker compose stop
-```
-
-Start it again with `docker compose up -d`.
-
-To stop and remove the container and its Docker network, run:
-
-```sh
-docker compose down
-```
+- **Prebuilt app:** download [SWL-Apple-Silicon.zip](https://github.com/deringezgin/scheme-swl-docker/raw/refs/heads/main/dist/SWL-Apple-Silicon.zip),
+  unzip it, and copy `SWL.app` into your home folder's **Applications** folder.
+  This skips compilation. The app is locally signed, not Apple-notarized; see
+  [the student guide](native-macos/STUDENT-SETUP.md#if-setup-needs-attention) for
+  help opening it.
+- **Docker:** follow [DOCKER.md](DOCKER.md) to run the original SWL environment
+  in your browser.
+- **Troubleshooting and terminal Scheme:** see [the student guide](native-macos/STUDENT-SETUP.md).
+- **Build details and verification:** see [the native macOS guide](native-macos/README.md).
