@@ -28,6 +28,12 @@ ad-hoc signed, not Apple-notarized. Automated screen capture of the final
 installed window failed in the capture service; executable GUI checks passed.
 These checks do not establish native REPL menu parity with the Docker version.
 
+App version 1.3.2 fixes the invisible text cursor in macOS Dark Mode. With the
+system still in Dark Mode, the original app's REPL text and entry widgets had
+white backgrounds and insertion-cursor RGB values of `65535 65535 65535`. The
+rebuilt app uses a light appearance; those same cursor values are `0 0 0` (black).
+This uses Apple's documented [app appearance setting](https://developer.apple.com/documentation/appkit/choosing-a-specific-appearance-for-your-macos-app).
+
 Reproduce the checks using `verify.sh`, `test-student-bootstrap.sh`, and the
 artifact instructions in [README.md](README.md). Artifact checksums are in
 `dist/SHA256SUMS.txt`.

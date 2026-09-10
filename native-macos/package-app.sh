@@ -61,11 +61,13 @@ cat > "$contents/Info.plist" <<'PLIST'
 <key>CFBundleName</key><string>SWL</string>
 <key>CFBundleDisplayName</key><string>SWL</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleVersion</key><string>1.3.1</string>
-<key>CFBundleShortVersionString</key><string>1.3.1</string>
+<key>CFBundleVersion</key><string>1.3.2</string>
+<key>CFBundleShortVersionString</key><string>1.3.2</string>
 <key>LSMinimumSystemVersion</key><string>11.0</string>
 <key>LSArchitecturePriority</key><array><string>arm64</string></array>
 <key>NSHighResolutionCapable</key><true/>
+<!-- SWL uses fixed white text backgrounds; keep system text/cursor colors dark. -->
+<key>NSRequiresAquaSystemAppearance</key><true/>
 </dict></plist>
 PLIST
 cat > "$resources/bin/scheme" <<'SCHEME'

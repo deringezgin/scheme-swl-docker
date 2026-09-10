@@ -16,6 +16,8 @@ Apple's Command Line Tools when missing, then builds a self-contained app in
 The prebuilt `dist/SWL-Apple-Silicon.zip` is a second option that needs no compiler.
 Neither artifact is published automatically. The app is ad-hoc signed and has
 not been notarized by Apple.
+The app uses a light appearance to keep its text cursor visible against SWL's
+white text backgrounds, including when macOS uses Dark Mode.
 
 ## Build from this repository
 
