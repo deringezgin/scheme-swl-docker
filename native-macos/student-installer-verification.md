@@ -34,6 +34,19 @@ white backgrounds and insertion-cursor RGB values of `65535 65535 65535`. The
 rebuilt app uses a light appearance; those same cursor values are `0 0 0` (black).
 This uses Apple's documented [app appearance setting](https://developer.apple.com/documentation/appkit/choosing-a-specific-appearance-for-your-macos-app).
 
+On September 15, 2026, app version 1.3.3 was packaged and its installed `swl`
+command checked on macOS 27.0. Local, relative, and absolute paths containing
+spaces all loaded a sibling helper file and reported the source file's directory
+as the working directory, with native Aqua Tk active. A fresh login shell resolved
+`swl` to `~/.local/bin/swl`. This repackaging reused the previously built Scheme
+and Tcl/Tk libraries; it was not a fresh dependency build on macOS 27.0.
+
+The original `pkg/cs.icns` is now included unchanged and selected through
+`CFBundleIconFile`, matching the upstream SWL macOS packaging. The source installer
+also includes the command setup script. The app build now selects the macOS SDK
+explicitly to avoid mixing the selected Xcode compiler with a newer standalone
+Command Line Tools SDK.
+
 Reproduce the checks using `verify.sh`, `test-student-bootstrap.sh`, and the
 artifact instructions in [README.md](README.md). Artifact checksums are in
 `dist/SHA256SUMS.txt`.

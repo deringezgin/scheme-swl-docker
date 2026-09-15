@@ -19,6 +19,9 @@ jobs=${SWL_BUILD_JOBS:-$(sysctl -n hw.ncpu 2>/dev/null || echo 4)}
 [[ "$jobs" =~ ^[1-9][0-9]*$ ]] || { echo 'SWL_BUILD_JOBS must be a positive integer.' >&2; exit 1; }
 if (( jobs > 8 )); then jobs=8; fi
 export MACOSX_DEPLOYMENT_TARGET=11.0
+# Keep the SDK matched to the selected Xcode/Command Line Tools installation.
+SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
+export SDKROOT
 export SWL_NATIVE_PREFIX="$prefix"
 log="$root/setup.log"
 trap 'echo "Build failed. See $log" >&2; tail -n 35 "$log" >&2' ERR

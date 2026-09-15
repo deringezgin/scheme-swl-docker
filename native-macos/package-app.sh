@@ -47,7 +47,8 @@ while IFS= read -r -d '' binary; do
 done < <(find "$bundle_runtime" -type f -print0)
 
 kernel="$prefix/lib/csv10.4.1/arm64osx"
-xcrun clang -O2 -arch arm64 -mmacosx-version-min=11.0 -fobjc-arc \
+sdk=$(xcrun --sdk macosx --show-sdk-path)
+xcrun --sdk macosx clang -isysroot "$sdk" -O2 -arch arm64 -mmacosx-version-min=11.0 -fobjc-arc \
     -I"$kernel" "$script_dir/app-main.m" "$kernel/libkernel.a" \
     "$kernel/libz.a" "$kernel/liblz4.a" -liconv -lncurses -framework Cocoa \
     -o "$contents/MacOS/SWL"
@@ -61,8 +62,9 @@ cat > "$contents/Info.plist" <<'PLIST'
 <key>CFBundleName</key><string>SWL</string>
 <key>CFBundleDisplayName</key><string>SWL</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleVersion</key><string>1.3.2</string>
-<key>CFBundleShortVersionString</key><string>1.3.2</string>
+<key>CFBundleVersion</key><string>1.3.3</string>
+<key>CFBundleShortVersionString</key><string>1.3.3</string>
+<key>CFBundleIconFile</key><string>cs.icns</string>
 <key>LSMinimumSystemVersion</key><string>11.0</string>
 <key>LSArchitecturePriority</key><array><string>arm64</string></array>
 <key>NSHighResolutionCapable</key><true/>
@@ -84,6 +86,10 @@ contents=$(cd "$(dirname "$0")/../.." && pwd)
 exec "$contents/MacOS/SWL" "$@"
 SWL
 chmod 755 "$resources/bin/scheme" "$resources/bin/swl"
+cp "$script_dir/install-command.sh" "$resources/bin/install-command.sh"
+chmod 755 "$resources/bin/install-command.sh"
+# The original SWL macOS package uses this Chez Scheme icon.
+cp "$root/build/swl1.3/pkg/cs.icns" "$resources/cs.icns"
 cp "$root/build-info.txt" "$resources/build-info.txt"
 cp "$script_dir/sources.tsv" "$script_dir/swl-arm64.patch" "$resources/"
 cp "$prefix/lib/swl1.3/Notice" "$resources/Notices/SWL.txt"

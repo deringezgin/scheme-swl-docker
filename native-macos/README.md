@@ -18,6 +18,8 @@ Neither artifact is published automatically. The app is ad-hoc signed and has
 not been notarized by Apple.
 The app uses a light appearance to keep its text cursor visible against SWL's
 white text backgrounds, including when macOS uses Dark Mode.
+The app icon is the original `pkg/cs.icns` used by SWL's macOS packaging, taken
+unchanged from the pinned SWL source archive.
 
 ## Build from this repository
 
@@ -43,6 +45,21 @@ The script uses Apple's build tools explicitly; Homebrew GNU binutils earlier
 in your usual `PATH` can otherwise break the Chez bootstrap archive.
 
 ## Open SWL or run an assignment
+
+To install the `swl` command for an existing app:
+
+```sh
+bash native-macos/install-command.sh "$HOME/Applications/SWL.app"
+swl file.ss
+```
+
+The generated command calls the app's native executable, preserving quoted
+arguments. A single source file is loaded from its own directory. The installer
+uses `~/.local/bin` (override with `SWL_COMMAND_BIN_DIR`), refuses to replace an
+unrelated command, and prints a PATH instruction if needed. It does not edit
+shell profiles. The same script is bundled as `Contents/Resources/bin/install-command.sh`.
+
+For a private build in this repository:
 
 ```sh
 ./native-macos/swl.sh

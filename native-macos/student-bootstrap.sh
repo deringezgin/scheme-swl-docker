@@ -6,7 +6,7 @@ export PATH=/usr/bin:/bin:/usr/sbin:/sbin
 swl_tools_ready() {
     xcrun --find clang >/dev/null 2>&1 &&
         xcrun --find make >/dev/null 2>&1 &&
-        xcrun --show-sdk-path >/dev/null 2>&1
+        xcrun --sdk macosx --show-sdk-path >/dev/null 2>&1
 }
 
 swl_require_tools() {

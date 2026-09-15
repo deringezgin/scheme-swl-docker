@@ -10,7 +10,7 @@ import tarfile
 source = Path(__file__).resolve().parent
 destination = source.parent / 'dist'
 destination.mkdir(exist_ok=True)
-files = ['student-bootstrap.sh', 'setup.sh', 'package-app.sh', 'app-main.m',
+files = ['student-bootstrap.sh', 'setup.sh', 'package-app.sh', 'app-main.m', 'install-command.sh',
          'launcher.sh', 'sources.tsv', 'swl-arm64.patch']
 payload = io.BytesIO()
 with tarfile.open(fileobj=payload, mode='w') as archive:

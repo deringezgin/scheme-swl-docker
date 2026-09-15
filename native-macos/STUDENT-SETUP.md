@@ -45,6 +45,25 @@ For a text-only Chez Scheme REPL:
 "$HOME/Applications/SWL.app/Contents/Resources/bin/scheme"
 ```
 
+## Install the short `swl` command
+
+Run this once after installing the app:
+
+```sh
+bash "$HOME/Applications/SWL.app/Contents/Resources/bin/install-command.sh"
+```
+
+Then use `swl file.ss`, or quote a path containing spaces:
+
+```sh
+swl "/path/to/my assignment/grid-main.ss"
+```
+
+The file runs with its own folder as the working directory. The command goes in
+`~/.local/bin`. If setup prints a PATH instruction, add that line to `~/.zshrc`
+and open a new Terminal. If you move the app, rerun command setup with the new
+app path as its argument.
+
 ## If setup needs attention
 
 - If Apple asks for an administrator's approval, complete that dialog or ask
