@@ -216,3 +216,15 @@
           [else
            (swl:begin-application
              (lambda (token)
+--- a/apps/edit/edit.ss
++++ b/apps/edit/edit.ss
+@@ -306,7 +306,8 @@
+                 (let ([doit
+                        (lambda (repl)
+                          (send repl insert-expression
+-                           (format "(load ~s)\n" current-filename)))])
++                           (format "(begin (current-directory ~s) (load ~s))\n"
++                             (path-parent current-filename) current-filename)))])
+                   (lambda (item)
+                     (critical-section
+                       (if current-filename

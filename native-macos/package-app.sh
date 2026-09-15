@@ -62,8 +62,8 @@ cat > "$contents/Info.plist" <<'PLIST'
 <key>CFBundleName</key><string>SWL</string>
 <key>CFBundleDisplayName</key><string>SWL</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleVersion</key><string>1.3.3</string>
-<key>CFBundleShortVersionString</key><string>1.3.3</string>
+<key>CFBundleVersion</key><string>1.3.4</string>
+<key>CFBundleShortVersionString</key><string>1.3.4</string>
 <key>CFBundleIconFile</key><string>cs.icns</string>
 <key>LSMinimumSystemVersion</key><string>11.0</string>
 <key>LSArchitecturePriority</key><array><string>arm64</string></array>
@@ -79,12 +79,7 @@ runtime=$(cd "$(dirname "$0")/../runtime" && pwd)
 export SCHEMEHEAPDIRS="$runtime/lib/csv10.4.1/arm64osx"
 exec "$runtime/bin/scheme" "$@"
 SCHEME
-cat > "$resources/bin/swl" <<'SWL'
-#!/bin/bash
-set -euo pipefail
-contents=$(cd "$(dirname "$0")/../.." && pwd)
-exec "$contents/MacOS/SWL" "$@"
-SWL
+cp "$script_dir/command-launcher.sh" "$resources/bin/swl"
 chmod 755 "$resources/bin/scheme" "$resources/bin/swl"
 cp "$script_dir/install-command.sh" "$resources/bin/install-command.sh"
 chmod 755 "$resources/bin/install-command.sh"

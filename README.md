@@ -39,15 +39,17 @@ Install the `swl` command once:
 bash "$HOME/Applications/SWL.app/Contents/Resources/bin/install-command.sh"
 ```
 
-Then run a Scheme file from any directory:
+Then open a Scheme file in the editor from any directory:
 
 ```sh
 swl file.ss
 swl "/path/to/my assignment/grid-main.ss"
 ```
 
-SWL loads the file with its containing folder as the working directory, so
-relative helper loads work. `swl` by itself opens the REPL. The command is installed
+SWL opens the file without running it and uses its containing folder as the working
+directory. In the editor, choose **File → (Save and) Load** to run it; helper files
+load relative to that folder. To run a file immediately, use `swl --load file.ss`.
+`swl` by itself opens the REPL. The command is installed
 in `~/.local/bin`; if setup prints a PATH instruction, add that line to `~/.zshrc`
 and open a new Terminal window.
 

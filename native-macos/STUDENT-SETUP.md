@@ -33,11 +33,14 @@ Keep all the assignment's helper files together. In the SWL REPL, enter:
 ```
 
 Use the folder and main filename for your assignment; some assignments start
-with `grid-boss.ss` or another file. Or launch a file from Terminal:
+with `grid-boss.ss` or another file. Or open a file in the editor from Terminal:
 
 ```sh
 "$HOME/Applications/SWL.app/Contents/Resources/bin/swl" "/path/to/grid-main.ss"
 ```
+
+Choose **File → (Save and) Load** in the editor to run it. SWL uses the edited
+file's folder when loading, so helper files in that folder can be found.
 
 For a text-only Chez Scheme REPL:
 
@@ -59,7 +62,9 @@ Then use `swl file.ss`, or quote a path containing spaces:
 swl "/path/to/my assignment/grid-main.ss"
 ```
 
-The file runs with its own folder as the working directory. The command goes in
+The file opens in the editor without running, with its own folder as the working
+directory. Use **File → (Save and) Load** to run it, or `swl --load file.ss` to run
+it immediately from Terminal. The command goes in
 `~/.local/bin`. If setup prints a PATH instruction, add that line to `~/.zshrc`
 and open a new Terminal. If you move the app, rerun command setup with the new
 app path as its argument.

@@ -53,8 +53,12 @@ bash native-macos/install-command.sh "$HOME/Applications/SWL.app"
 swl file.ss
 ```
 
-The generated command calls the app's native executable, preserving quoted
-arguments. A single source file is loaded from its own directory. The installer
+The generated command calls the app's `Contents/Resources/bin/swl` launcher,
+preserving quoted arguments. A source file opens in the editor without evaluation,
+with its containing directory as the working directory. The editor's **File →
+(Save and) Load** also switches the target REPL to that directory before loading.
+Use `swl --load file.ss` for immediate evaluation. The repository's `swl.sh`
+launcher retains its direct-load behavior for verification scripts. The installer
 uses `~/.local/bin` (override with `SWL_COMMAND_BIN_DIR`), refuses to replace an
 unrelated command, and prints a PATH instruction if needed. It does not edit
 shell profiles. The same script is bundled as `Contents/Resources/bin/install-command.sh`.

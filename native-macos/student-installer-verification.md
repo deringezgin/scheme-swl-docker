@@ -47,6 +47,24 @@ also includes the command setup script. The app build now selects the macOS SDK
 explicitly to avoid mixing the selected Xcode compiler with a newer standalone
 Command Line Tools SDK.
 
-Reproduce the checks using `verify.sh`, `test-student-bootstrap.sh`, and the
+App version 1.3.4 changes `swl file.ss` to open the source in the editor without
+evaluating it. `swl --load file.ss` retains immediate evaluation. On September 15,
+2026, the packaged command opened a relative path containing spaces from another
+directory; the editor held the source file open, used its containing directory,
+and did not execute the file. Invoking the editor's actual **(Save and) Load** menu
+action with an existing REPL in another directory successfully loaded a sibling
+helper and reported the edited file's directory. The source installer includes
+both the command launcher and the editor directory patch.
+
+The ZIP was extracted and installed at `~/Applications/SWL.app`, and these
+editor checks passed again through the installed `~/.local/bin/swl` command.
+The installed app also passed the ARM64, Aqua GUI, and Tcl file-channel checks.
+Installer payload contents, artifact checksums, and the app signature were
+verified. The existing user session was left running.
+
+After updating an existing installation, rerun `install-command.sh` and restart
+SWL after saving any open work, so running editors use the updated Load action.
+
+Reproduce the general runtime checks using `verify.sh`, `test-student-bootstrap.sh`, and the
 artifact instructions in [README.md](README.md). Artifact checksums are in
 `dist/SHA256SUMS.txt`.

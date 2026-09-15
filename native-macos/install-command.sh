@@ -6,6 +6,7 @@ bin_dir=${SWL_COMMAND_BIN_DIR:-"$HOME/.local/bin"}
 [[ -d "$app" ]] || { echo "SWL app not found: $app" >&2; exit 1; }
 app=$(cd "$app" && pwd)
 [[ -x "$app/Contents/MacOS/SWL" ]] || { echo "SWL executable not found in $app" >&2; exit 1; }
+[[ -x "$app/Contents/Resources/bin/swl" ]] || { echo "SWL command launcher not found in $app" >&2; exit 1; }
 identifier=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app/Contents/Info.plist")
 [[ "$identifier" == local.scheme.swl.arm64 ]] || { echo "Not a native SWL app: $app" >&2; exit 1; }
 mkdir -p "$bin_dir"
@@ -22,7 +23,7 @@ temporary=$(mktemp "$bin_dir/.swl.XXXXXXXX")
 trap 'rm -f "$temporary"' EXIT
 {
     printf '#!/bin/bash\n%s\n' "$marker"
-    printf 'exec %q "$@"\n' "$app/Contents/MacOS/SWL"
+    printf 'exec %q "$@"\n' "$app/Contents/Resources/bin/swl"
 } > "$temporary"
 chmod 755 "$temporary"
 mv "$temporary" "$command_path"
